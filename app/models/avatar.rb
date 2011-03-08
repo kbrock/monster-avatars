@@ -49,7 +49,7 @@ class Avatar
   def part_files
     part_values={}
     ALL_PARTS.each do |part|
-      part_values[part] = "parts/#{part}_#{@key % NUM_PARTS[part]}.png"
+      part_values[part] = "parts/#{part}_#{@key % NUM_PARTS[part] + 1}.png"
     end
     part_values
   end
