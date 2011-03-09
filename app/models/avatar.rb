@@ -58,7 +58,7 @@ class Avatar
   end
 
   def command
-    "cd #{Rails.root} ; convert parts/background.png " + (part_files + [@filename]).join(' -composite ')
+    "cd #{Rails.root} ; convert parts_c/background.png " + (part_files + [@filename]).join(' -composite ')
   end
 
   def part_files
