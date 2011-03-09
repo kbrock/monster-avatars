@@ -15,5 +15,5 @@ Here is where I got my start
   * [http://blog.dmcleish.id.au/2007/12/20/wavatar-artwork/][wavatar] - newer art work
   * [http://scott.sherrillmix.com/blog/blogger/wp_monsterid-update-hand-drawn-monsters/][newer monsters] - newer art
 
-First revision is based upon enhanced monsterid entries wp_monsterid/faces (old entries)
-Next revision may use color enhancing on new wp_monsterid/faces entries
+Using the very pretty wp_monsterid/faces
+Not using their algorithm. so may need to tweak in the future
