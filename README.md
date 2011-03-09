@@ -14,3 +14,6 @@ Here is where I got my start
   * [http://blog.gravatar.com/2008/04/22/identicons-monsterids-and-wavatars-oh-my/][gravatar] - summary article
   * [http://blog.dmcleish.id.au/2007/12/20/wavatar-artwork/][wavatar] - newer art work
   * [http://scott.sherrillmix.com/blog/blogger/wp_monsterid-update-hand-drawn-monsters/][newer monsters] - newer art
+
+First revision is based upon enhanced monsterid entries wp_monsterid/faces (old entries)
+Next revision may use color enhancing on new wp_monsterid/faces entries
