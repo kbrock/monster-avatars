@@ -3,24 +3,26 @@ require 'color'
 class ColorTool
   attr_accessor :base
   def initialize(base=nil)
-    @base=base||random_color
+    @base=base||random
   end
 
-  def choose_color(value)
+  def color(value=nil)
     case value
     when :body
       @base
     when :random
-      random_color
+      random
+    when String
+      value
     when Array
-      random_color(value)
+      random(value)
     else
-      random_color
+      random
     end
   end
 
   #hsb stuff
-  def random_color(value=nil)
+  def random(value=nil)
     Color::HSL.from_fraction(rand, 0.8, rand_float(0.2,0.32)).html
   end
 

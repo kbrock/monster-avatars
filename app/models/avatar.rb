@@ -21,18 +21,19 @@ class Avatar
     'mouth_14.png' => :body
   }
 
-  attr_accessor :filename, :key
+  attr_accessor :filename, :key, :ct
 
-  def initialize(key)
+  def initialize(key, base_color=nil, filename=nil)
     @force = false
+    @ct = base_color || ColorTool.new(base_color)
     @key = key.to_i
-    @filename="#{Rails.root}/tmp/avatar-#{@key}.png"
+    @filename= filename || "#{Rails.root}/tmp/avatar-#{@key}.png"
   end
 
   def generate
     if ! File.exist?(@filename) || @force
       #TODO: start with background - compose everyone ontop of it
-      ret=`#{command} 2>&1`
+      ret=create_monster(@filename)
       raise ret unless ret.blank?
     end
     self
@@ -51,31 +52,63 @@ class Avatar
     a = Avatar.new(id)
   end
 
-  private
+  # private
+  # methods used for demo / messing around on the command line
+
+  def create_monster(filename)
+    run(merge_parts,filename)
+  end
+
+  def create_clut_file(filename, part=nil)
+    run(clut_file(@ct.color(part)), filename)
+  end
+
+  def create_black_clut_file(filename, part=nil)
+    run(black_clut_file(@ct.color(part)), filename)
+  end
+
+  # typically called in rails console via: Avatar.find(55).cleanup.generate.open
   def open
     `open #{@filename}`
     self
   end
 
-  def command
-    "cd #{Rails.root} ; convert parts_c/background.png " + (part_files + [@filename]).join(' -composite ')
+  private
+  # components for commands
+
+  def run(cmd, filename)
+    `cd #{Rails.root} ; convert #{cmd} #{filename} 2>&1`
+  end
+
+  def clut_file(color)
+    "-size 10x100 gradient:#{color}"
+  end
+
+  def black_clut_file(color)
+    "\\( -size 10x100 gradient:#{color} -draw 'fill black rectangle 0,0 10,30' \\)"
+  end
+
+  def merge_parts
+    "parts_c/background.png " + (part_files + ['']).join(' -composite ')
   end
 
   def part_files
-    ct = ColorTool.new
     ALL_PARTS.collect do |part|
       part_file = choose_file(part, key)
-      color = ct.choose_color(part == :body ? :body : PART_COLOR[part_file])
+      #body always gets the body color, some other parts get the body color, but most pass nil (aka random)
+      color = @ct.color(part == :body ? :body : PART_COLOR[part_file])
       if color
         # create a cusom gradient, but make the darkest 40% black - so we end up with an image with color hilights)
         # clut = apply that gradient to our colors
-        "\\( #{PARTS_DIR}/#{part_file} \\( -size 10x100 gradient:#{color} -draw 'fill black rectangle 0,0 10,30' \\) -clut \\) "
+        "\\( #{PARTS_DIR}/#{part_file} #{black_clut_file(color)} -clut \\) "
       else
         "#{PARTS_DIR}/#{part_file}"
       end
     end
   end
 
+  # choose a file for the particular body part
+  # key is passed in for the determiner. (rather than random)
   def choose_file(part, key)
     num_parts = NUM_PARTS[part]
     "#{part}_#{@key % num_parts + 1}.png"

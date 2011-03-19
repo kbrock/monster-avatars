@@ -7,10 +7,10 @@ class AvatarsController < ApplicationController
   def show
     expires_in 1.week, 'max-stale' => 2.weeks, :public => true
     if stale? (:last_modified => MOD_DATE, :etag => MOD_DATE)
-      a = Avatar.find(params[:id])
-      a.generate
-      send_file a.filename, :type => a.filetype, :url_based_filename => true, :disposition => 'inline'
-      a.cleanup
+      @avatar = Avatar.find(params[:id])
+      @avatar.generate
+      send_file @avatar.filename, :type => @avatar.filetype, :url_based_filename => true, :disposition => 'inline'
+      @avatar.cleanup
     end
   end
 end
