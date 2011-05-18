@@ -13,6 +13,12 @@ class Avatar
    :mouth =>  17
   }
 
+  PART_HARDCODED_COLORS = {
+    :arms => {13 => :body},
+    :legs => {6 => :body, 18 => :body},
+    :mouth => {15 => :body, 14 => :body}
+  }
+
   PART_COLOR = {
     'arms_13.png'  => :body,
     'legs_6.png'   => :body,
@@ -94,7 +100,8 @@ class Avatar
 
   def part_files
     ALL_PARTS.collect do |part|
-      part_file = choose_file(part, key)
+      num = @key % NUM_PARTS[part]
+      part_file = choose_file(part, num)
       #body always gets the body color, some other parts get the body color, but most pass nil (aka random)
       color = @ct.color(part == :body ? :body : PART_COLOR[part_file])
       if color
@@ -108,9 +115,19 @@ class Avatar
   end
 
   # choose a file for the particular body part
-  # key is passed in for the determiner. (rather than random)
-  def choose_file(part, key)
-    num_parts = NUM_PARTS[part]
-    "#{part}_#{@key % num_parts + 1}.png"
+  def choose_file(part, num)
+    "#{part}_#{num}.png"
+  end
+
+  # an integer key (aka account_id) -> hash for keys
+  def self.parts_from_int(key)
+    ALL_PARTS.collect do |part|
+      num_parts = NUM_PARTS[part]
+      num = key % num_parts + 1
+      [part,num,color]
+    end
+  end
+
+  def self.parts_from_string(key)
   end
 end
