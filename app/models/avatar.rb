@@ -13,13 +13,15 @@ class Avatar
    :mouth =>  17
   }
 
+  #these parts have hard coded colors
   PART_COLORS = {
     :arms => {13 => :body},
     :legs => {6 => :body, 18 => :body},
-    :mouth => {15 => :body, 14 => :body}
+    :mouth => {15 => :body, 14 => :body},
+    :body => Hash.new(:body)
   }
 
-  attr_accessor :filename, :key, :ct
+  attr_accessor :key, :ct
   attr_accessor :magick
   delegate :filename, :delegate, :filetype, :to => :magick
 
@@ -74,7 +76,7 @@ class Avatar
     end
   end
 
-  def part_color(part,num,color=:random)
-    part == :body ? :body : PART_COLORS[part].try(:[],num)||char_to_int(color)
-  end
+  def self.part_color(part,num,color=:random)
+    PART_COLORS[part].try(:[],num)||color
+  end  
 end

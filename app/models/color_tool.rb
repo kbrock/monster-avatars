@@ -2,9 +2,10 @@ require 'color'
 
 class ColorTool
   attr_accessor :base
+
   def initialize(base=nil)
     @colors={}
-    @colors[:body]=base||random
+    @colors[:body]=color(base)
   end
 
   def add_color(name,value=nil)
@@ -18,6 +19,8 @@ class ColorTool
       random
     when String
       value
+    when Numeric
+      random(value)
     when Array
       random(value[0],value[1])
     else
