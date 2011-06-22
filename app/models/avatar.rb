@@ -13,18 +13,10 @@ class Avatar
    :mouth =>  17
   }
 
-  PART_HARDCODED_COLORS = {
+  PART_COLORS = {
     :arms => {13 => :body},
     :legs => {6 => :body, 18 => :body},
     :mouth => {15 => :body, 14 => :body}
-  }
-
-  PART_COLOR = {
-    'arms_13.png'  => :body,
-    'legs_6.png'   => :body,
-    'legs_18.png'  => :body,
-    'mouth_15.png' => :body,
-    'mouth_14.png' => :body
   }
 
   attr_accessor :filename, :key, :ct
@@ -33,12 +25,12 @@ class Avatar
     @force = false
     @ct = base_color || ColorTool.new(base_color)
     @key = key.to_i
+    @parts = self.class.parts_from_int(@key, @ct)
     @filename= filename || "#{Rails.root}/tmp/avatar-#{@key}.png"
   end
 
   def generate
     if ! File.exist?(@filename) || @force
-      #TODO: start with background - compose everyone ontop of it
       ret=create_monster(@filename)
       raise ret unless ret.blank?
     end
@@ -99,11 +91,9 @@ class Avatar
   end
 
   def part_files
-    ALL_PARTS.collect do |part|
-      num = @key % NUM_PARTS[part]
+    @parts.collect do |part,num,color|
       part_file = choose_file(part, num)
       #body always gets the body color, some other parts get the body color, but most pass nil (aka random)
-      color = @ct.color(part == :body ? :body : PART_COLOR[part_file])
       if color
         # create a cusom gradient, but make the darkest 40% black - so we end up with an image with color hilights)
         # clut = apply that gradient to our colors
@@ -120,11 +110,13 @@ class Avatar
   end
 
   # an integer key (aka account_id) -> hash for keys
-  def self.parts_from_int(key)
+  def self.parts_from_int(key, base_color=nil)
+    ct = base_color || ColorTool.new(base_color)
     ALL_PARTS.collect do |part|
       num_parts = NUM_PARTS[part]
       num = key % num_parts + 1
-      [part,num,color]
+      color = ct.color(part == :body ? :body : PART_COLORS[part].try(:[],num))
+      [part, num, color]
     end
   end
 
