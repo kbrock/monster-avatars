@@ -114,11 +114,12 @@ class Avatar
     ALL_PARTS.collect do |part|
       num_parts = NUM_PARTS[part]
       num = key % num_parts + 1
-      color = ct.color(part == :body ? :body : PART_COLORS[part].try(:[],num))
+      color = ct.color(part_color(part,num))
       [part, num, color]
     end
   end
 
-  def self.parts_from_string(key)
+  def part_color(part,num,color=:random)
+    part == :body ? :body : PART_COLORS[part].try(:[],num)||char_to_int(color)
   end
 end
