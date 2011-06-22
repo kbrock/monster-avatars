@@ -5,10 +5,11 @@ class AvatarsController < ApplicationController
   end
   
   def show
-    expires_in 1.week, 'max-stale' => 2.weeks, :public => true
-    if stale? :last_modified => MOD_DATE, :etag => MOD_DATE
+    force=Rails.env.development?
+    expires_in 1.week, 'max-stale' => 2.weeks, :public => true unless force
+    if force || stale?(:last_modified => MOD_DATE, :etag => MOD_DATE)
       @avatar = Avatar.find(params[:id])
-      @avatar.generate
+      @avatar.generate(force)
       send_file @avatar.filename, :type => @avatar.filetype, :url_based_filename => true, :disposition => 'inline'
       @avatar.cleanup
     end

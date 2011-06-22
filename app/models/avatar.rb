@@ -22,15 +22,14 @@ class Avatar
   attr_accessor :filename, :key, :ct
 
   def initialize(key, base_color=nil, filename=nil)
-    @force = false
     @ct = base_color || ColorTool.new(base_color)
     @key = key.to_i
     @parts = self.class.parts_from_int(@key, @ct)
     @filename= filename || "#{Rails.root}/tmp/avatar-#{@key}.png"
   end
 
-  def generate
-    if ! File.exist?(@filename) || @force
+  def generate(force=false)
+    if ! File.exist?(@filename) || force
       ret=create_monster(@filename)
       raise ret unless ret.blank?
     end
