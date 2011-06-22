@@ -21,19 +21,5 @@ class AvatarTest < ActiveSupport::TestCase
     assert @a.respond_to?(:cleanup)
   end
 
-  test "generate clut_file" do
-    color = '#aaccee'
-    assert_match /#{color}/, @a.send(:clut_file,color)
-  end
 
-  test "generate black_clut_file" do
-    color = '#aaccee'
-    assert_match /#{color}/, @a.send(:black_clut_file,color)
-    assert_match /black/, @a.send(:black_clut_file,color)
-  end
-
-  test "generate parts" do
-    assert_match /-composite/, @a.send(:merge_parts)
-    assert_match /legs/, @a.send(:merge_parts)
-  end
 end

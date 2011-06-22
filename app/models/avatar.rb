@@ -20,29 +20,22 @@ class Avatar
   }
 
   attr_accessor :filename, :key, :ct
+  attr_accessor :magick
+  delegate :filename, :delegate, :filetype, :to => :magick
 
   def initialize(key, base_color=nil, filename=nil)
     @ct = base_color || ColorTool.new(base_color)
     @key = key.to_i
     @parts = self.class.parts_from_int(@key, @ct)
-    @filename= filename || "#{Rails.root}/tmp/avatar-#{@key}.png"
+    @magick = Magick.new(filename || "#{Rails.root}/tmp/avatar-#{@key}.png",PARTS_DIR)
   end
 
-  def generate(force=false)
-    if ! File.exist?(@filename) || force
-      ret=create_monster(@filename)
+  def generate(force)
+    if ! magick.exists? || force
+      ret=create_monster
       raise ret unless ret.blank?
     end
     self
-  end
-
-  def cleanup
-    `rm #{@filename} 2>&1 > /dev/null`
-    self
-  end
-
-  def filetype
-    'image/png'
   end
 
   def self.find(id)
@@ -52,56 +45,18 @@ class Avatar
   # private
   # methods used for demo / messing around on the command line
 
-  def create_monster(filename)
-    run(merge_parts,filename)
+  def create_monster
+    magick.reset
+    magick.background
+    @parts.each do |part,num,color|
+      magick.composite(choose_file(part,num)){|cf| cf.bclut(color) if color}
+    end
+    magick.run
   end
 
-  def create_clut_file(filename, part=nil)
-    run(clut_file(@ct.color(part)), filename)
-  end
-
-  def create_black_clut_file(filename, part=nil)
-    run(black_clut_file(@ct.color(part)), filename)
-  end
-
-  # typically called in rails console via: Avatar.find(55).cleanup.generate.open
-  def open
-    `open #{@filename}`
-    self
-  end
 
   private
   # components for commands
-
-  def run(cmd, filename)
-    `cd #{Rails.root} ; convert #{cmd} #{filename} 2>&1`
-  end
-
-  def clut_file(color)
-    "-size 10x100 gradient:#{color}"
-  end
-
-  def black_clut_file(color)
-    "\\( -size 10x100 gradient:#{color} -draw 'fill black rectangle 0,0 10,30' \\)"
-  end
-
-  def merge_parts
-    "parts_c/background.png " + (part_files + ['']).join(' -composite ')
-  end
-
-  def part_files
-    @parts.collect do |part,num,color|
-      part_file = choose_file(part, num)
-      #body always gets the body color, some other parts get the body color, but most pass nil (aka random)
-      if color
-        # create a cusom gradient, but make the darkest 40% black - so we end up with an image with color hilights)
-        # clut = apply that gradient to our colors
-        "\\( #{PARTS_DIR}/#{part_file} #{black_clut_file(color)} -clut \\) "
-      else
-        "#{PARTS_DIR}/#{part_file}"
-      end
-    end
-  end
 
   # choose a file for the particular body part
   def choose_file(part, num)
