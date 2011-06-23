@@ -51,7 +51,7 @@ class Avatar
 
   def create_monster
     magick.reset
-    magick.background
+    magick.background #{ |cf| cf.clut(@ct.color(:background,1),120,120)}
     @parts.each do |part,num,color|
       num_parts = NUM_PARTS[part]
       if num_parts

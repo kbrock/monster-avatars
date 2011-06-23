@@ -11,11 +11,9 @@ class Magick
     @parts =[]
   end
 
-  def background(background=true)
+  def background(background="#{@parts_dir}/background.png")
     if block_given?
       @parts << yield(self)
-    elsif background==true
-      @parts << "#{@parts_dir}/background.png"
     elsif background
       @parts << background
     end
@@ -59,11 +57,11 @@ class Magick
 
   #helpers used with composite
   # composite('part_file') { |cf| clut('#112233') }
-  def clut(color)
-    "-size 10x100 gradient:#{color}"
+  def clut(color, width=10, height=100)
+    "-size #{height}x#{width} gradient:#{color}"
   end
 
-  def bclut(color)
-    "\\( -size 10x100 gradient:#{color} -draw 'fill black rectangle 0,0 10,30' \\)"
+  def bclut(color, width=10, height=100)
+    "\\( #{clut(color,width,height)} -draw 'fill black rectangle 0,0 #{width},#{(height*0.3).to_i}' \\)"
   end
 end
