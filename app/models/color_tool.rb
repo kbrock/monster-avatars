@@ -1,19 +1,25 @@
 require 'color'
 
 class ColorTool
-  attr_accessor :base
+  #these parts have hard coded colors
 
-  def initialize(base=nil)
+  # param: the body color
+  # param: predefined colors e.g. {:arm => {1 => :body}} == arm 1 needs to be the body color
+  def initialize(predefined={})
     @colors={}
-    @colors[:body]=color(base)
+    @predefined = predefined
   end
 
-  def add_color(name,value=nil)
-    @colors[name]=color(value)
+  def body(c)
+    color(:body,1,c)
+    self
   end
 
-  def color(value=nil)
-    return @colors[value] if @colors[value]
+  def color(part, number, value=nil)
+    return nil if part.nil?
+    #lets remember the color
+    #if it is based upon another color, then lets figure out that color first
+    @colors[part]||=color(predefined(part,number),number,value)||
     case value
     when :random
       random
@@ -28,8 +34,17 @@ class ColorTool
     end
   end
 
+  #used for testing. will pass in values to initialize
+  def predefine(part, number, other_part)
+    (@predefined[part]||={})[number]=other_part
+  end
+
+  def predefined(part, number)
+    @predefined[part].try(:[],number)
+  end
+
   #hsb stuff
-  def random(hue=nil,brightness=nil)
+  def random(hue=nil, brightness=nil)
     Color::HSL.from_fraction(hue||rand, 0.8, brightness||rand_float(0.2,0.32)).html
   end
 
