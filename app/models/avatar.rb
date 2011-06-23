@@ -1,5 +1,8 @@
 #know how to use imagemagick to generate a particular avatar
 class Avatar
+  ASCII_A="A"[0]
+  ASCII_a="a"[0]
+
   #These are in a particular order
   ALL_PARTS=[:legs, :hair, :arms, :body, :eyes, :mouth]
 
@@ -13,26 +16,25 @@ class Avatar
    :mouth =>  17
   }
 
-  #these parts have hard coded colors
   PART_COLORS = {
     :arms => {13 => :body},
     :legs => {6 => :body, 18 => :body},
-    :mouth => {15 => :body, 14 => :body},
-    :body => Hash.new(:body)
+    :mouth => {15 => :body, 14 => :body}
   }
 
-  attr_accessor :key, :ct
-  attr_accessor :magick
-  delegate :filename, :delegate, :filetype, :to => :magick
+  attr_accessor :key, :magick, :ct
+  delegate :filename, :cleanup, :filetype, :to => :magick
+  delegate :body, :color, :to => :ct
 
-  def initialize(key, base_color=nil, filename=nil)
-    @ct = base_color || ColorTool.new(base_color)
-    @key = key.to_i
-    @parts = self.class.parts_from_int(@key, @ct)
+  # only passing in a key, the base_color/filename are for testing purposes
+  def initialize(key, filename=nil)
+    @ct = ColorTool.new(PART_COLORS)
+    @key = key
+    @parts = @key.is_a?(Numeric) ? self.class.parts_from_int(@key) : self.class.parts_from_string(@key)
     @magick = Magick.new(filename || "#{Rails.root}/tmp/avatar-#{@key}.png",PARTS_DIR)
   end
 
-  def generate(force)
+  def generate(force=false)
     if ! magick.exists? || force
       ret=create_monster
       raise ret unless ret.blank?
@@ -51,7 +53,12 @@ class Avatar
     magick.reset
     magick.background
     @parts.each do |part,num,color|
-      magick.composite(choose_file(part,num)){|cf| cf.bclut(color) if color}
+      num_parts = NUM_PARTS[part]
+      if num_parts
+        num = num % num_parts + 1
+        color = @ct.color(part,num,color)
+        magick.composite(choose_file(part,num)){|cf| cf.bclut(color) }
+      end
     end
     magick.run
   end
@@ -66,17 +73,27 @@ class Avatar
   end
 
   # an integer key (aka account_id) -> hash for keys
-  def self.parts_from_int(key, base_color=nil)
-    ct = base_color || ColorTool.new(base_color)
+  def self.parts_from_int(key)
     ALL_PARTS.collect do |part|
-      num_parts = NUM_PARTS[part]
-      num = key % num_parts + 1
-      color = ct.color(part_color(part,num))
-      [part, num, color]
+      #technically -don't need to do the mod here
+      [part, key, nil]
     end
   end
 
-  def self.part_color(part,num,color=:random)
-    PART_COLORS[part].try(:[],num)||color
-  end  
+  def self.parts_from_string(key)
+    key.scan(/../).zip(ALL_PARTS).collect do |value,part|
+      num, color = value.scan(/(.)/).map {|x| char_to_int(x.first) }
+      [part, num, color/36.0]
+    end
+  end
+
+  def self.char_to_int(key)
+    case key
+      when '0'..'9' : key.to_i
+      when 'a'..'z' : key[0] - ASCII_a + 10
+      when 'A'..'Z' : key[0] - ASCII_A + 10 + 26
+      else
+        'X'
+    end
+  end
 end
